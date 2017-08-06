@@ -13,7 +13,7 @@ start:
 	find $(sass_root) -name '*.scss' | grep -v '#' | entr make build-sass
 
 build: web/*.dart analyze
-	pub build $(pubflags)
+	$(pub) build $(pubflags)
 
 build-sass:
 	find web/sass/ -name '*.scss' | awk '{print "@import \"" $$0 "\""}' | SASS_PATH='.' sass --stdin > $(css_dest)
