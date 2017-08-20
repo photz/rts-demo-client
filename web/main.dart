@@ -1,5 +1,7 @@
 import 'dart:html';
-import 'package:rts_demo_client/networked.dart';
+import 'dart:convert';
+import 'package:rts_demo_client/server.dart';
+import 'package:rts_demo_client/game-map.dart';
 
 void main() {
   print("hello world!");
@@ -8,16 +10,52 @@ void main() {
 }
 
 class Game {
-  Networked _nw;
+  Server _server;
   InputElement _chatInput;
   DivElement _chatOutput;
+  var _initialized = false;
+  Element _map;
+  var _testFactory = null;
+  GameMap _gameMap;
 
   Game() {
-    print('launching game');
-    _nw = new Networked('192.168.1.215', 9003, _onConnectionEstablished, _onGetMessages);
+    _gameMap = new GameMap();
+
+    _server = new Server('ws://192.168.1.212', 9004);
+    _server.events.listen(this._onServerEvent);
 
     _initChatInput();
     _initChatOutput();
+  }
+
+  void _onServerEvent(data) {
+
+    // Player
+    if (data.containsKey("player_id")) {
+      _gameMap.setPlayerId(data["player_id"]);
+    }
+
+    // Point Masses
+    if (data.containsKey("point_masses")) {
+      _gameMap.setPointMasses(data["point_masses"]);
+    }
+
+    // Resources
+    if (data.containsKey("resources")) {
+      _gameMap.setResources(data["resources"]);
+    }
+
+    // Ownership
+    if (data.containsKey("ownership")) {
+      _gameMap.setOwnership(data["ownership"]);
+    }
+
+    // Unit Factories
+    if (data.containsKey("unit_factories")) {
+      _gameMap.setUnitFactories(data["unit_factories"]);
+    }
+
+    // TODO: containsKey("message")
   }
 
   void _onConnectionEstablished() {
@@ -46,51 +84,42 @@ class Game {
   }
 
   void _initChatInput() {
-    // Background
-    DivElement div = new DivElement();
-    div.style.width = '600px';
-    div.style.height = '150px';
-    div.style.position = 'absolute';
-    div.style.right = '20px';
-    div.style.bottom = '20px';
-    div.style.backgroundColor = 'lightgrey';
-    div.style.opacity = '1.0';
+    // Creating Elements
+    DivElement background = new DivElement();
+    background.className = 'chat-input__background';
 
-    // Input
-    DivElement inputParent = new DivElement();
-    inputParent.style.padding = '5%';
+    DivElement wrap = new DivElement();
+    wrap.className = 'chat-input__wrap';
 
     _chatInput = new InputElement();
-    _chatInput.style.marginRight = '10px';
-    _chatInput.onKeyDown.listen(this._onChatInputKeyDown);
-    inputParent.append(_chatInput);
-    // Submit
+    _chatInput.className = 'chat-input';
+
     InputElement submit = new InputElement();
     submit.type = 'submit';
     submit.value = 'send';
-    submit.onMouseDown.listen(this._onSubmitClick);
-    inputParent.append(submit);
 
-    div.append(inputParent);
-    document.body.append(div);
+    // Appending
+    wrap.append(_chatInput);
+    wrap.append(submit);
+    background.append(wrap);
+    document.body.append(background);
+
+    // Setting Key Callbacks
+    _chatInput.onKeyDown.listen(this._onChatInputKeyDown);
+    submit.onMouseDown.listen(this._onSubmitClick);
   }
 
   void _initChatOutput() {
-    // Background
-    DivElement div = new DivElement();
-    div.style.width = '300px';
-    div.style.height = '700px';
-    div.style.position = 'absolute';
-    div.style.left = '20px';
-    div.style.top = '20px';
-    div.style.backgroundColor = 'lightgrey';
-    div.style.opacity = '1.0';
+    // Creating Elements
+    DivElement background = new DivElement();
+    background.className = 'chat-output__background';
 
     _chatOutput = new DivElement();
-    _chatOutput.style.margin = '10%';
+    _chatOutput.className = 'chat-output';
 
-    div.append(_chatOutput);
-    document.body.append(div);
+    // Appending
+    background.append(_chatOutput);
+    document.body.append(background);
   }
 
   void _onChatInputKeyDown(KeyboardEvent e) {
@@ -108,38 +137,36 @@ class Game {
     _createSendMessage(_chatInput.value);
 
     // Send message to server
-    _nw.sendChatMessage(_chatInput.value);
+    // _nw.sendChatMessage(_chatInput.value);
 
     // Clear chat input field
     _chatInput.value = '';
   }
 
   void _createReceivedMessage(String message) {
-    // Wrap
-    DivElement outputWrap = new DivElement();
-    outputWrap.style.width ='100%';
-    outputWrap.style.textAlign ='right';
-    outputWrap.style.paddingBottom ='10px';
-    // Text
-    DivElement output = new DivElement();
-    output.text = message;
-    output.className = 'received';
-    outputWrap.append(output);
-    _chatOutput.append(outputWrap);
+    // Elements
+    DivElement messageWrap = new DivElement();
+    messageWrap.className = 'message__wrap';
+
+    DivElement messageEl = new DivElement();
+    messageEl.className = 'received';
+    messageEl.text = message;
+    messageWrap.append(messageEl);
+    _chatInput.append(messageWrap);
   }
 
   void _createSendMessage(String message) {
     // Wrap
-    DivElement outputWrap = new DivElement();
-    outputWrap.style.width ='100%';
-    outputWrap.style.textAlign ='left';
-    outputWrap.style.paddingBottom ='10px';
+    DivElement messageWrap = new DivElement();
+    messageWrap.style.width ='100%';
+    messageWrap.style.textAlign ='left';
+    messageWrap.style.paddingBottom ='10px';
     // Text
-    DivElement output = new DivElement();
-    output.text = message;
-    output.className = 'send';
-    outputWrap.append(output);
-    _chatOutput.append(outputWrap);
+    DivElement messageEl = new DivElement();
+    messageEl.text = message;
+    messageEl.className = 'send';
+    messageWrap.append(messageEl);
+    _chatOutput.append(messageWrap);
   }
 }
 

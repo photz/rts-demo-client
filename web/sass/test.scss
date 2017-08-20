@@ -1,5 +1,5 @@
 body {
-  background-color: red;
+  background-color: #36a571;
 }
 
 .test {
@@ -12,9 +12,74 @@ body {
 
 
 .send {
-	color: green;
+  color: green;
 }
 
 .received {
-	color: red;
+  color: red;
+}
+
+.chat-input {
+  margin-right: 10px;
+
+  &__background {
+    background-color: lightgrey;
+    bottom: 20px;
+    height: 150px;
+    position: absolute;
+    right: 20px;
+    width: 600px;
+  }
+
+  &__wrap {
+    padding: 5%;
+  }
+}
+
+.chat-output {
+  margin: 10%;
+
+  &__background {
+    width: 300px;
+    height: 700px;
+    position: absolute;
+    left: 20px;
+    top: 20px;
+    background-color: lightgrey;
+  }
+}
+
+.message-send {
+
+  &__wrap {
+    width: 100%;
+    text-align: right;
+    padding-bottom: 10px;
+  }
+}
+
+.entity {
+  background-color: yellow;
+  height: 10px;
+  position: absolute;
+  width: 10px;
+
+  &-allied {
+    background-color: green;
+  }
+
+  &-resource {
+    background-color: gold;
+    border-radius: 70%;
+    height: 15px;
+    width: 15px;
+  }
+}
+
+.map {
+  bottom: 50%;
+  height: 100%;
+  left: 50%;
+  position: absolute;
+  width: 100%;
 }
